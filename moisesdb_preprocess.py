@@ -47,15 +47,16 @@ def musdb_preprocess(root_dir, output_dir, sr=44100, session_length=6):
         cnt = len(os.listdir(os.path.join(output_dir, track))) + 1
         print(f"Processing {track}, starting from sample {cnt}")
         for file in tqdm(all_data_dir[track], dynamic_ncols=True):
-            dataset_name = os.path.join(output_dir, track, 'sample'+str(cnt)+'.hdf5')
-            dataset = h5py.File(dataset_name, 'a')
             x, sr = sf.read(file)
             x = VAD(x, sr=sr, session_length=session_length)
             if len(x) > 0:
+                dataset_name = os.path.join(output_dir, track, 'sample'+str(cnt)+'.hdf5')
+                dataset = h5py.File(dataset_name, 'a')
                 dataset.create_dataset('data', shape=(len(x), 2, sr * session_length), dtype=float)
 
                 for s in range(len(x)):
                     dataset['data'][s,:] = np.asarray(x[s].T)
+                dataset.close()
                 cnt += 1
 
 if __name__ == "__main__":
